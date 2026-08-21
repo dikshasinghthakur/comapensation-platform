@@ -1,0 +1,9 @@
+{
+  "name": "compensation-intelligence-system",
+  "version": "1.0.0",
+  "description": "Structured salary benchmarking platform focused on levels and compensation comparisons.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "private": true
+}

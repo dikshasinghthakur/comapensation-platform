@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Compensation Intelligence System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <div class="brand-mark">CI</div>
+          <div>
+            <p class="eyebrow">Global + India salary benchmark platform</p>
+            <h1>Compensation Intelligence</h1>
+          </div>
+        </div>
+        <nav class="topnav" aria-label="Main navigation">
+          <a href="#overview">Overview</a>
+          <a href="#benchmarks">Benchmarks</a>
+          <a href="#comparison">Compare</a>
+          <a href="#research">Research</a>
+        </nav>
+      </header>
+
+      <main class="content" id="overview">
+        <aside class="sidebar panel" aria-label="Filters panel">
+          <div class="panel-header">
+            <h2>Filters</h2>
+            <button id="resetFilters" class="link-button" type="button">Reset</button>
+          </div>
+
+          <div class="field-group">
+            <label for="searchInput">Search</label>
+            <input id="searchInput" type="search" placeholder="Role, company, location" />
+          </div>
+
+          <div class="field-group">
+            <label for="levelFilter">Level</label>
+            <select id="levelFilter">
+              <option value="all">All levels</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="roleFilter">Role</label>
+            <select id="roleFilter">
+              <option value="all">All roles</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="locationFilter">Location</label>
+            <select id="locationFilter">
+              <option value="all">All locations</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="companyFilter">Company</label>
+            <select id="companyFilter">
+              <option value="all">All companies</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="sortValue">Sort by</label>
+            <select id="sortValue">
+              <option value="totalDesc">Total comp: high to low</option>
+              <option value="totalAsc">Total comp: low to high</option>
+              <option value="baseDesc">Base salary: high to low</option>
+              <option value="companyAsc">Company</option>
+              <option value="levelAsc">Level</option>
+            </select>
+          </div>
+        </aside>
+
+        <section class="main-panel">
+          <div class="kpi-grid" id="kpiGrid" aria-live="polite"></div>
+
+          <div class="panel benchmark-panel" id="benchmarks">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Structured salary view</p>
+                <h2>Salary benchmarks</h2>
+              </div>
+              <span class="tag" id="resultCount">0 records</span>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Company</th>
+                    <th>Level</th>
+                    <th>Role</th>
+                    <th>Location</th>
+                    <th>Base</th>
+                    <th>Bonus</th>
+                    <th>Stock</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="salaryTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="insights-grid">
+            <div class="panel">
+              <div class="panel-header compact">
+                <h3>Company snapshot</h3>
+              </div>
+              <div id="companyProfile" class="company-profile"></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header compact">
+                <h3>Top compensation by company</h3>
+              </div>
+              <div id="companyChart" class="company-chart" aria-label="Compensation by company"></div>
+            </div>
+          </div>
+
+          <div class="panel comparison-panel" id="comparison">
+            <div class="panel-header compact">
+              <h3>Comparison workspace</h3>
+            </div>
+            <div id="comparisonGrid" class="comparison-grid"></div>
+          </div>
+        </section>
+      </main>
+
+      <section id="research" class="research panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Mandatory research</p>
+            <h2>Market observations and feature comparison</h2>
+          </div>
+        </div>
+        <div class="research-summary" id="researchSummary"></div>
+      </section>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
