@@ -1,7 +1,7 @@
 # Compensation Intelligence System
 
 This project delivers a structured compensation intelligence experience focused on level-based salary benchmarking rather than generic job listings.
-
+[demo link]((https://dikshasinghthakur.github.io/comapensation-platform/)
 ## What is included
 
 - Searchable salary tables with hybrid global + India market coverage
