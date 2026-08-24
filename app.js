@@ -57,6 +57,15 @@ const currency = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 0
 });
 
+// Small utility: debounce to improve search UX with large datasets
+function debounce(fn, wait = 250) {
+  let t = null;
+  return (...args) => {
+    if (t) clearTimeout(t);
+    t = setTimeout(() => fn(...args), wait);
+  };
+}
+
 const vendorResearch = [
   {
     title: 'Levels.fyi',
@@ -425,9 +434,14 @@ function populateFilters() {
 }
 
 function bindEvents() {
-  document.getElementById('searchInput').addEventListener('input', (event) => {
-    state.search = event.target.value;
+  // Debounced search input to avoid excessive renders on large datasets
+  const debouncedSearch = debounce((value) => {
+    state.search = value;
     renderDashboard();
+  }, 250);
+
+  document.getElementById('searchInput').addEventListener('input', (event) => {
+    debouncedSearch(event.target.value);
   });
 
   document.getElementById('levelFilter').addEventListener('change', (event) => {
@@ -485,12 +499,18 @@ function renderDashboard() {
 }
 
 async function init() {
+  const kpiGrid = document.getElementById('kpiGrid');
+  // Show a lightweight loading state while we attempt to fetch server data
+  if (kpiGrid) kpiGrid.innerHTML = '<div class="empty-state">Loading data…</div>';
+
   if (window.location.protocol !== 'file:') {
     try {
       const response = await fetch('/api/benchmarks');
       if (response.ok) {
         const payload = await response.json();
         safeData = dedupeSalaryData(payload);
+      } else {
+        console.warn('Failed to fetch remote dataset, using static fallback.');
       }
     } catch (error) {
       console.warn('Static fallback dataset used.', error);

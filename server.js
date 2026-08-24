@@ -74,7 +74,39 @@ function dedupeSalaryData(data) {
   return Array.from(map.values());
 }
 
-const safeData = dedupeSalaryData(salaryData);
+const dataFile = path.join(rootDir, 'data.json');
+
+let safeData = [];
+
+function loadDataFromFile() {
+  try {
+    if (fs.existsSync(dataFile)) {
+      const raw = fs.readFileSync(dataFile, 'utf8');
+      const parsed = JSON.parse(raw || '[]');
+      safeData = dedupeSalaryData(Array.isArray(parsed) && parsed.length ? parsed : salaryData);
+    } else {
+      safeData = dedupeSalaryData(salaryData);
+      try {
+        fs.writeFileSync(dataFile, JSON.stringify(salaryData, null, 2));
+      } catch (e) {
+        console.warn('Unable to persist initial dataset to data.json', e);
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to load data.json, falling back to bundled dataset.', e);
+    safeData = dedupeSalaryData(salaryData);
+  }
+}
+
+function saveDataToFile() {
+  try {
+    fs.writeFileSync(dataFile, JSON.stringify(safeData, null, 2));
+  } catch (e) {
+    console.error('Failed to persist data.json', e);
+  }
+}
+
+loadDataFromFile();
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
@@ -109,7 +141,61 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
 
   if (url.pathname === '/api/benchmarks') {
-    sendJson(res, 200, safeData);
+    // Support CORS preflight
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204, { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET,POST,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-API-KEY' });
+      res.end();
+      return;
+    }
+
+    if (req.method === 'GET') {
+      sendJson(res, 200, safeData);
+      return;
+    }
+
+    if (req.method === 'POST') {
+      // Basic API key protection for ingestion
+      const apiKey = process.env.API_KEY || 'devkey';
+      const provided = req.headers['x-api-key'] || req.headers['x-api-key'.toUpperCase()];
+      if (provided !== apiKey) {
+        sendJson(res, 401, { error: 'Unauthorized: missing or invalid API key' });
+        return;
+      }
+
+      let body = '';
+      req.on('data', (chunk) => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const payload = JSON.parse(body || '[]');
+          const incoming = Array.isArray(payload) ? payload : [payload];
+
+          // Build a key set of existing records for deduplication (company|level|role|location|year)
+          const existingKeys = new Set(safeData.map((r) => [r.company, r.level, r.role, r.location, r.year].join('|').toLowerCase()));
+
+          let added = 0;
+          incoming.forEach((entry) => {
+            const normalized = getSafeRecord(entry);
+            if (!normalized) return;
+            const key = [normalized.company, normalized.level, normalized.role, normalized.location, normalized.year].join('|').toLowerCase();
+            if (!existingKeys.has(key)) {
+              existingKeys.add(key);
+              safeData.push(normalized);
+              added += 1;
+            }
+          });
+
+          if (added) saveDataToFile();
+          sendJson(res, 200, { added, total: safeData.length });
+        } catch (err) {
+          sendJson(res, 400, { error: 'Invalid JSON payload' });
+        }
+      });
+
+      return;
+    }
+
+    // Method not allowed
+    sendJson(res, 405, { error: 'Method not allowed' });
     return;
   }
 
